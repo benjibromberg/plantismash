@@ -1,11 +1,11 @@
-PlantiSMASH - Plant Secondary Metabolites Analysis Shell
+plantiSMASH - Plant Specialized Metabolite Analysis Shell
 ===================================================================
 
 [![DOI](https://zenodo.org/badge/185329393.svg)](https://doi.org/10.5281/zenodo.15412176) [![bio.tools](https://img.shields.io/static/v1?label=bio.tools&message=plantiSMASH&color=green)](https://bio.tools/plantismash)
 
 
 
-**PlantiSMASH** is a specialized extension of [antiSMASH](https://antismash.secondarymetabolites.org/) for the identification and analysis of biosynthetic gene clusters (BGCs) in plant genomes. It supports advanced plant-specific detection rules and features for comparative genomics, visualization, and more.
+**plantiSMASH** is a specialized extension of [antiSMASH](https://antismash.secondarymetabolites.org/) for the identification and analysis of biosynthetic gene clusters (BGCs) in plant genomes. It supports advanced plant-specific detection rules and features for comparative genomics, visualization, and more.
 
 ## 📚 Documentation & Wiki
 
