@@ -51,7 +51,7 @@ git commit -m "Update CONTRIBUTORS"
 ### 2️⃣ Update the Version (Single Source of Truth)
 
 Update the version number **only once** in  
-[`antismash/__init__.py`](./antismash/__init__.py):
+[`antismash/__init__.py`](./antismash/__init__.py) in the dev or feature branch. 
 
 ```python
 __version__ = "2.1.0"
@@ -70,7 +70,7 @@ You can confirm the currently set version by running:
 python run_antismash.py -h
 ```
 
-Then commit the change:
+Then commit the change to the dev or feature branch:
 
 ```bash
 git commit -am "Bump version to 2.1.0"
@@ -80,9 +80,9 @@ git commit -am "Bump version to 2.1.0"
 
 ### 3️⃣  Automatic Tagging via GitHub Actions
 
-If you prefer, you can skip the manual tag step and let GitHub Actions handle it.
-
-When you push a branch named:
+When you: 
+-  push new changes to the master branch or 
+-  create and push a branch named:
 ```
 release/<MAJOR>.<MINOR>.<PATCH>
 ```
@@ -90,14 +90,20 @@ release/<MAJOR>.<MINOR>.<PATCH>
 the workflow [`.github/workflows/tag-on-version.yml`](./.github/workflows/tag-on-version.yml) will automatically:
 
 1. Extract the version from `antismash/__init__.py`  
-2. Verify that it matches your branch name (`release/2.1.0` → `__version__ = "2.1.0"`)  
-3. Create and push the tag `plantismash-2.1.0`
+2. Verify that it matches your branch name, if working on a release branch (`release/2.1.0` → `__version__ = "2.1.0"`)  
+3. Create and push the tag `plantismash-2.1.0` if the bumped version is different from the one in master
 
 If the branch name and internal version **don’t match**, the workflow fails early with a clear error message — preventing accidental mismatched tags.
 
+--- 
+### 4️⃣ Make the release on GitHub UI 
+
+Make a release on GitHub and tag it with the tag created by the workflow (e.g. `plantismash-2.1.0`). 
+
+
 ---
 
-### 6️⃣ Zenodo Archiving
+### 5️⃣ Zenodo Archiving
 
 All tagged releases are automatically tracked and archived in  
 [**Zenodo**](https://zenodo.org/) at [![DOI](https://zenodo.org/badge/185329393.svg)](https://doi.org/10.5281/zenodo.15412176)  
@@ -125,19 +131,7 @@ For example:
 https://plantismash.github.io/documentation/changelog/2.1/#supported-cluster-types-version-2
 ```
 
----
 
-### ✅ Summary
-
-| Step | Task | Script / File |
-|------|------|----------------|
-| 1 | Update contributors | [`CONTRIBUTORS`](./CONTRIBUTORS) |
-| 2 | Update version | [`antismash/__init__.py`](./antismash/__init__.py) |
-| 3 | Generate notes | [`changes.txt`](./changes.txt) |
-| 4 | Tag release manually | — |
-| 5 | Or tag automatically | [`.github/workflows/tag-on-version.yml`](./.github/workflows/tag-on-version.yml) |
-| 6 | Verify Zenodo tracking | [![DOI](https://zenodo.org/badge/185329393.svg)](https://doi.org/10.5281/zenodo.15412176) 
-| 7 | Check documentation link | [`generator.py`](./antismash/output_modules/html/generator.py) |
 
 
 
