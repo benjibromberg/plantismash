@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=68", "wheel", "setuptools-scm>=8"]
+requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -70,3 +70,6 @@ antismash = [
   "**/*.txt",  "**/*.hmm", "**/*.pfam", "**/*.png", "**/*.svg",
   "**/*.cfg"
 ]
+
+[tool.setuptools.dynamic]
+version = { attr = "antismash.__version__" }

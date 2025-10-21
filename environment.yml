@@ -1,4 +1,4 @@
-name: plantismash
+name: plantismash_test
 channels:
   - conda-forge
   - bioconda
@@ -18,7 +18,7 @@ dependencies:
   - cd-hit=4.8.1
   - libxml2=2.10.3
   - pplacer=1.1.alpha17
-  - ncbi-datasets-cli
+  - ncbi-datasets-cli=18.9.0
   - unzip=6.0
  # Extras for TFBS and visualization
   - logomaker=0.8
