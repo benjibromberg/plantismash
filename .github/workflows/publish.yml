@@ -2,12 +2,12 @@ name: Build & Publish to (Test)PyPI on Release
 
 on:
   release:
-    types: [published]   # fires when you publish a GitHub Release via the UI
-  workflow_dispatch:     # allow manual runs
+    types: [published]
+  workflow_dispatch: {}
 
 permissions:
-  contents: write
-  id-token: write        # needed for PyPI Trusted Publishing (OIDC). Safe even if you use tokens.
+  contents: write      # needed to update the Release (attach assets)
+  id-token: write      # needed for PyPI Trusted Publishing
 
 jobs:
   build-and-publish:
@@ -17,12 +17,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0   # if you ever switch back to setuptools-scm
+          fetch-depth: 0
+
+      # Derive tag/prerelease flags in a single place
+      - name: Compute release metadata
+        id: meta
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then
+            echo "tag=${{ github.event.release.tag_name }}" >> "$GITHUB_OUTPUT"
+            echo "prerelease=${{ github.event.release.prerelease }}" >> "$GITHUB_OUTPUT"
+          else
+            # Manual runs: fall back to the ref name (or let user pass an input)
+            echo "tag=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
+          echo "Computed tag: $(grep '^tag=' $GITHUB_OUTPUT | cut -d= -f2)"
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          # Any modern version is fine for building; runtime pins live in requires-python
           python-version: "3.11"
 
       - name: Install build tooling
@@ -36,45 +49,28 @@ jobs:
       - name: Check artifacts
         run: python -m twine check dist/*
 
-      - name: Upload build artifacts to the Release
+      - name: Upload artifacts to the GitHub Release
         if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.event.release.tag_name }}   # e.g. 'plantismash-2.0.3'
+          token: ${{ secrets.GITHUB_TOKEN }}                  # explicit token
+          tag_name: ${{ steps.meta.outputs.tag }}             # raw tag, not refs/tags/...
           files: |
             dist/*.whl
             dist/*.tar.gz
+          fail_on_unmatched_files: true
+          # allowUpdates: true   # uncomment if you want to overwrite on re-runs
 
-      # ===== OPTION A: Trusted Publishing (recommended) =====
-      # Requires you to enable Trusted Publishing on PyPI for the 'plantismash' project,
-      # linking this GitHub repo. No secrets needed.
-      - name: Publish to TestPyPI if this is a prerelease (Trusted Publishing)
-        if: github.event.release.prerelease == true
+      # ===== Trusted Publishing to (Test)PyPI =====
+      - name: Publish to TestPyPI (prerelease)
+        if: steps.meta.outputs.prerelease == 'true'
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: https://test.pypi.org/legacy/
           skip-existing: true
 
-      - name: Publish to PyPI if this is a normal (non-prerelease) release (Trusted Publishing)
-        if: github.event.release.prerelease == false
+      - name: Publish to PyPI (normal release)
+        if: steps.meta.outputs.prerelease == 'false' && github.event_name == 'release'
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           skip-existing: true
-
-      # ===== OPTION B: Classic API token (uncomment if you prefer tokens) =====
-      # - name: Publish to TestPyPI (token)
-      #   if: github.event.release.prerelease == true
-      #   uses: pypa/gh-action-pypi-publish@release/v1
-      #   with:
-      #     repository-url: https://test.pypi.org/legacy/
-      #     user: __token__
-      #     password: ${{ secrets.TEST_PYPI_API_TOKEN }}
-      #     skip-existing: true
-      #
-      # - name: Publish to PyPI (token)
-      #   if: github.event.release.prerelease == false
-      #   uses: pypa/gh-action-pypi-publish@release/v1
-      #   with:
-      #     user: __token__
-      #     password: ${{ secrets.PYPI_API_TOKEN }}
-      #     skip-existing: true

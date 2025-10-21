@@ -26,7 +26,7 @@ dependencies:
   # Pip dependencies
   - pip
   - pip:
-      - .
+      - plantismash
       - ./graphlan # or a git URL if not local
       # - graphlan @ git+https://github.com/biobakery/graphlan.git
      
