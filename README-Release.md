@@ -103,10 +103,22 @@ Make a release on GitHub and tag it with the tag created by the workflow (e.g. `
 
 ---
 
-### 5️⃣ Zenodo Archiving
+### 5️⃣ Zenodo Archiving and PyPI  
 
 All tagged releases are automatically tracked and archived in  
-[**Zenodo**](https://zenodo.org/) at [![DOI](https://zenodo.org/badge/185329393.svg)](https://doi.org/10.5281/zenodo.15412176)  
+[**Zenodo**](https://zenodo.org/) at [![DOI](https://zenodo.org/badge/185329393.svg)](https://doi.org/10.5281/zenodo.15412176).  
+
+Each GitHub release also triggers a **PyPI publication workflow** that:  
+- builds the source distribution (`.tar.gz`) and wheel (`.whl`) directly from the `pyproject.toml` specification,  
+- uploads them to [**PyPI**](https://pypi.org/project/plantismash) (or to [**TestPyPI**](https://test.pypi.org/project/plantismash) for pre-releases), and  
+- attaches the built artifacts to the corresponding GitHub Release.
+
+
+This means that every official version tag (e.g. `2.0b5`, `2.0.0`) becomes instantly installable via pip:
+
+```bash
+pip install plantismash
+```
 
 ---
 

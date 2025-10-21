@@ -1,0 +1,53 @@
+name: Tag on version (single source)
+
+on:
+  push:
+    branches:
+      - master
+      - release/*
+
+jobs:
+  tag-from-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # we need tags
+
+      - name: Extract version from antismash/__init__.py
+        id: getver
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION=$(sed -nE "s/^__version__\s*=\s*['\"]([^'\"]+)['\"]/\\1/p" antismash/__init__.py)
+          if [ -z "${VERSION:-}" ]; then
+            echo "Could not find __version__ in antismash/__init__.py" >&2
+            exit 1
+          fi
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Verify release/* branch suffix matches version (if applicable)
+        if: startsWith(github.ref_name, 'release/')
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXPECTED="${GITHUB_REF_NAME#release/}"
+          if [ "${EXPECTED}" != "${{ steps.getver.outputs.version }}" ]; then
+            echo "Version mismatch: branch expects ${EXPECTED}, file has ${{ steps.getver.outputs.version }}" >&2
+            exit 1
+          fi
+
+      - name: Create tag if missing
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="plantismash-${{ steps.getver.outputs.version }}"
+          if git rev-parse -q --verify "refs/tags/${TAG}" >/dev/null; then
+            echo "Tag ${TAG} already exists; nothing to do."
+            exit 0
+          fi
+          git config user.name "${GITHUB_ACTOR}"
+          git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+          git tag -a "${TAG}" -m "plantiSMASH ${TAG#plantismash-}"
+          git push origin "${TAG}"
