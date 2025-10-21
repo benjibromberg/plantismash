@@ -6,7 +6,7 @@ on:
   workflow_dispatch:     # allow manual runs
 
 permissions:
-  contents: read
+  contents: write
   id-token: write        # needed for PyPI Trusted Publishing (OIDC). Safe even if you use tokens.
 
 jobs:
@@ -37,9 +37,10 @@ jobs:
         run: python -m twine check dist/*
 
       - name: Upload build artifacts to the Release
-        uses: softprops/action-gh-release@v2
         if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ github.event.release.tag_name }}   # e.g. 'plantismash-2.0.3'
           files: |
             dist/*.whl
             dist/*.tar.gz
