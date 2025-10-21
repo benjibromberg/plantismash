@@ -12,6 +12,49 @@
     <link rel="stylesheet" type="text/css" href="css/normalize.css">
     <meta charset="utf-8" />
   </head>
+  <style>
+  /* --- footer logos (match webserver layout.html behavior) --- */
+  .org-logos{
+    display:flex !important;
+    justify-content:center;
+    align-items:center;
+    gap:12px;
+    flex-wrap:wrap;
+    margin:14px 0 6px;
+  }
+  .org-logos .logo-frame{
+    padding:0;
+    margin:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .org-logos .logo-frame img{
+    display:block;
+    height:80px !important;   /* desktop override below */
+    width:auto !important;
+    max-height:none !important;
+    max-width:none !important;
+  }
+  @media (min-width:992px){
+    .org-logos .logo-frame img{ height:60px !important; }
+    .org-logos{ gap:16px; }
+  }
+
+  /* license/cite box style to match server look */
+  .license-cite-box{
+    margin-top:2rem;
+    text-align:center;
+  }
+  .license-cite-box .inner{
+    display:inline-block;
+    text-align:center;
+  }
+  .license-cite-box a{ text-decoration: none; }
+  .license-cite-box img.github-icon{
+    height:1em; vertical-align:middle; margin-right:4px;
+  }
+</style>
   <body>
     <div id="header">
       <div class="top-header">
@@ -60,28 +103,49 @@
       </table>
     </div>
 
-  <div id="footer" class="container">
-    <div class="row justify-content-center align-items-center text-center org-logos" style="gap: 1rem;">
-      <div class="col-1 col-md-3">
-        <img class="img-responsive org-logo" src="images/wur-logo1.png" alt="WUR Logo" style="padding-top: 1em; width: 100%;">
-      </div>
-      <div class="col-1 col-md-2">
-        <img class="img-responsive org-logo" src="images/jic-logo.png" alt="JIC Logo" style="width: 100%;">
-      </div>
-      <div class="col-1 col-md-2">
-        <img class="img-responsive org-logo" src="images/hu-logo.png" alt="HU Logo" style="width: 100%;">
-      </div>
-      <div class="col-1 col-md-2">  
-        <img class="img-responsive org-logo" src="images/jgi-logo.png" alt="JGI Logo" style="width: 100%;">
-      </div>
-      <div class="col-1 col-md-2 d-flex justify-content-center">
-        <div class="copyright-box well well-small text-center">
-          If you have found plantiSMASH useful, please 
-          <a href="http://plantismash.secondarymetabolites.org/about">cite us</a>.
+<div id="footer" class="container">
+
+  <!-- License + cite box (mirrors webserver layout) -->
+  <div class="license-cite-box">
+    <div class="inner well well-small alert alert-success">
+      If you have found this software useful, please
+      <a href="https://plantismash.github.io/documentation/about/#how-to-cite" target="_blank">cite us</a>.
+      <br><br>
+      <strong>plantiSMASH License:</strong>
+      plantiSMASH is licensed under the
+      <a href="https://www.gnu.org/licenses/agpl-3.0" target="_blank">
+        GNU Affero General Public License v3.0
+      </a>.
+      <br><br>
+      <a href="https://github.com/plantismash/plantismash" target="_blank" title="View on GitHub">
+        <img class="github-icon" src="https://cdn.jsdelivr.net/npm/simple-icons@v5/icons/github.svg" alt="GitHub">
+        Visit the <strong>plantiSMASH GitHub Repository</strong>
+      </a>
+    </div>
+  </div>
+
+  <!-- Logos row (stable sizing) -->
+  <div class="row">
+    <div class="col-xs-12">
+      <div class="org-logos">
+        <div class="logo-frame">
+          <img src="images/wur-logo1.png" alt="WUR logo">
+        </div>
+        <div class="logo-frame">
+          <!-- keep filename that exists in your static bundle: you used jic-logo.png above -->
+          <img src="images/jic-logo.png" alt="JIC logo">
+        </div>
+        <div class="logo-frame">
+          <img src="images/hu-logo.png" alt="HU logo">
+        </div>
+        <div class="logo-frame">
+          <img src="images/jgi-logo.png" alt="JGI logo">
         </div>
       </div>
     </div>
   </div>
+
+</div>
 
 
     <script src="js/jquery.js"></script>

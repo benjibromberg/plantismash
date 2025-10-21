@@ -249,3 +249,122 @@ def make_geneclusterprots(seq_records, options, output_filename="plantgenecluste
 
 def where_is_clusterblast():
     return utils.get_full_path(__file__, '')
+
+
+# --- ClusterBlast provenance helpers (for UI/reporting) ---
+import json as _json
+import glob as _glob
+
+def _cb_dir_from_options(options):
+    """Resolve the ClusterBlast DB dir: prefer options.clusterblastdir, else module dir."""
+    db_dir = getattr(options, "clusterblastdir", "") or where_is_clusterblast()
+    return path.abspath(db_dir)
+
+def _load_manifest_json(db_dir):
+    p = path.join(db_dir, "clusterblast_release.json")
+    if path.exists(p):
+        try:
+            with open(p, "r", encoding="utf-8") as fh:
+                return _json.load(fh)
+        except Exception:
+            return None
+    return None
+
+def _load_manifest_txt(db_dir):
+    """Fallback: parse CLUSTERBLAST_RELEASE.txt if present (very forgiving)."""
+    p = path.join(db_dir, "CLUSTERBLAST_RELEASE.txt")
+    info = {}
+    if path.exists(p):
+        try:
+            with open(p, "r", encoding="utf-8") as fh:
+                for line in fh:
+                    line = line.strip()
+                    low = line.lower()
+                    if low.startswith("concept doi"):
+                        info["concept_doi"] = line.split(":", 1)[-1].strip()
+                    elif low.startswith("version"):
+                        info["version"] = line.split(":", 1)[-1].strip()
+                    elif low.startswith("published"):
+                        info["published"] = line.split(":", 1)[-1].strip()
+                    elif low.startswith("record id"):
+                        rid = line.split(":", 1)[-1].strip()
+                        if rid:
+                            info["record_doi"] = f"10.5281/zenodo.{rid}"
+            return info if info else None
+        except Exception:
+            return None
+    return None
+
+def _guess_custom_label(db_dir):
+    """Pick a readable file name to show when a custom DB (no manifest) is provided."""
+    pats = [
+        "plantgeneclusterprots*.fasta",
+        "plantgeneclusterprots*.dmnd",
+        "plantgeneclusters*.txt",
+        "*.tar.gz",
+    ]
+    candidates = []
+    for pat in pats:
+        candidates += _glob.glob(path.join(db_dir, pat))
+    if candidates:
+        try:
+            latest = max(candidates, key=os.path.getmtime)
+            return path.basename(latest)
+        except Exception:
+            pass
+    return path.basename(path.normpath(db_dir))
+
+def get_provenance(options):
+    """
+    Returns a dict describing the ClusterBlast DB used. One of:
+      - {'mode':'zenodo', 'record_doi':str|None, 'concept_doi':str|None,
+         'version':str|None, 'published':str|None, 'db_dir':str}
+      - {'mode':'custom', 'label':str, 'absdir':str}
+      - {'mode':'unknown', 'concept_doi':str, 'note':str}
+
+    This is used by the HTML generator to show a small 'data source' note.
+    """
+    db_dir = _cb_dir_from_options(options)
+
+    # Prefer JSON manifest (if the downloader created it)
+    info = _load_manifest_json(db_dir)
+    if info:
+        rec_id = str(info.get("record_id") or "").strip()
+        rec_doi = f"10.5281/zenodo.{rec_id}" if rec_id else None
+        return {
+            "mode": "zenodo",
+            "record_doi": rec_doi,
+            "concept_doi": info.get("concept_doi"),
+            "version": info.get("display_version") or info.get("version"),
+            "published": info.get("published"),
+            "db_dir": db_dir,
+        }
+
+    # Try text manifest fallback
+    info = _load_manifest_txt(db_dir)
+    if info:
+        return {
+            "mode": "zenodo",
+            "record_doi": info.get("record_doi"),
+            "concept_doi": info.get("concept_doi"),
+            "version": info.get("version"),
+            "published": info.get("published"),
+            "db_dir": db_dir,
+        }
+
+    # If user explicitly gave a directory and there's no manifest → treat as custom
+    if getattr(options, "clusterblastdir", ""):
+        return {
+            "mode": "custom",
+            "label": _guess_custom_label(db_dir),
+            "absdir": db_dir,
+        }
+
+    # Fall back: concept only, unknown version
+    concept = "10.5281/zenodo.16927684"
+    return {
+        "mode": "unknown",
+        "concept_doi": concept,
+        "note": "latest under concept DOI; version unknown",
+    }
+# --- end provenance helpers ---

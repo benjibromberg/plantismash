@@ -23,6 +23,7 @@ from antismash.output_modules.html import js
 import unicodedata
 import re
 import xml.sax.saxutils as saxutils
+from antismash.generic_modules import clusterblast as cb_mod
 
 try: 
     from antismash.generic_modules.tfbs_finder import output as tfbs_output
@@ -360,10 +361,69 @@ def add_cluster_page(d, cluster, seq_record, options, extra_data, seq_id):
         cb = pq('<div>')
         cb.addClass('clusterblast')
         cb_header = pq('<h3>')
-        cb_header.text("Similar gene clusters")
+        cb_header.text("Similar gene clusters (clusterBLAST output)")
         cb.append(cb_header)
+
+
+        # --- ClusterBlast provenance / version note from module ---
+        try:
+            prov = cb_mod.get_provenance(options)
+            meta = pq('<p>').addClass('clusterblast-meta')
+
+            if prov["mode"] == "zenodo":
+                rec = prov.get("record_doi")
+                con = prov.get("concept_doi")
+                ver = prov.get("version") or "unknown"
+
+                bits = []
+                if rec:
+                    rec_href = rec if rec.startswith("http") else f"https://doi.org/{rec}"
+                    bits.append(
+                        f'Data from ClusterBlast database '
+                        f'<a href="{rec_href}" target="_blank" rel="noopener noreferrer">{rec}</a>'
+                        f' (version: {ver})'
+                    )
+                    if con:
+                        con_href = con if con.startswith("http") else f"https://doi.org/{con}"
+                        bits.append(
+                            f' &middot; concept DOI: '
+                            f'<a href="{con_href}" target="_blank" rel="noopener noreferrer">{con}</a>'
+                        )
+                else:
+                    if con:
+                        con_href = con if con.startswith("http") else f"https://doi.org/{con}"
+                        bits.append(
+                            f'Data from ClusterBlast database '
+                            f'<a href="{con_href}" target="_blank" rel="noopener noreferrer">{con}</a>'
+                            f' (version: {ver})'
+                        )
+                    else:
+                        bits.append('Data from ClusterBlast database (version: unknown)')
+                meta.html(f"<small>{''.join(bits)}.</small>")
+                cb.append(meta)
+
+            elif prov["mode"] == "custom":
+                label = prov.get("label", "custom database")
+                meta.html(f'<small>Custom ClusterBlast database used: <code>{label}</code>.</small>')
+                cb.append(meta)
+
+            else:
+                con = prov.get("concept_doi", "")
+                con_href = con if con.startswith("http") else f"https://doi.org/{con}"
+                meta.html(
+                    f'<small>Data from ClusterBlast database '
+                    f'<a href="{con_href}" target="_blank" rel="noopener noreferrer">{con}</a>'
+                    f' (version: unknown).</small>'
+                )
+                cb.append(meta)
+
+        except Exception as e:
+            logging.debug("ClusterBlast provenance note not shown: %s", e)
+        # --- end provenance note ---
+        
         cb_control = pq('<div>')
         cb.append(cb_control)
+
         if len(top_ten_clusters) == 0:
             cb_download = pq('No significant ClusterBlast hits found.')
             cb_control.append(cb_download)
@@ -451,7 +511,7 @@ def add_cluster_page(d, cluster, seq_record, options, extra_data, seq_id):
         cb = pq('<div>')
         cb.addClass('knownclusterblast')
         cb_header = pq('<h3>')
-        cb_header.text("Similar known gene clusters")
+        cb_header.text("Similar known gene clusters (knownClusterBLAST output)")
         cb.append(cb_header)
         cb_control = pq('<div>')
         cb.append(cb_control)

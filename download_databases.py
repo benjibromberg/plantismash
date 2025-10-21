@@ -38,6 +38,11 @@ PFAM_CHECKSUM_SHA256 = "b29bc2c54db8090531df0361a781b8d7397f60ebedc0c36a16e7d45e
 # ------------------ ClusterBlast (latest via Zenodo concept DOI) ------------------
 CLUSTERBLAST_CONCEPT_RECID = "16927684"
 CLUSTERBLAST_FILENAME = "clusterblast.tar.gz"
+CLUSTERBLAST_DATA_FILES = [
+    "plantgeneclusterprots.fasta",
+    "plantgeneclusterprots.dmnd",
+    "plantgeneclusters.txt",
+]
 
 if sys.platform in ("win32", "darwin"):
     os.environ["EXEC"] = os.getcwd() + "\\exec"
@@ -129,6 +134,10 @@ def delete_file(filename):
 
 # ------------------ Zenodo ------------------
 def zenodo_latest_file_info(concept_recid, target_filename=None):
+    """Return (download_url, checksum_algo, checksum_hex, record_id, record_version, size_bytes).
+
+    record_version falls back to '<YYYY-MM-DD> (record <id>)' if metadata.version is missing.
+    """
     api_url = f"https://zenodo.org/api/records/{concept_recid}/versions/latest"
     with urllib.request.urlopen(api_url) as resp:
         data = json.loads(resp.read().decode("utf-8"))
@@ -153,7 +162,7 @@ def zenodo_latest_file_info(concept_recid, target_filename=None):
         print("ERROR: Could not find a .tar.gz artifact in latest Zenodo record.")
         sys.exit(1)
 
-    ch = chosen.get("checksum", "")
+    ch = chosen.get("checksum", "") or ""
     algo, hexdigest = ("md5", ch)
     if ":" in ch:
         algo, hexdigest = ch.split(":", 1)
@@ -166,7 +175,16 @@ def zenodo_latest_file_info(concept_recid, target_filename=None):
         download_url = f"https://zenodo.org/api/records/{rec_id}/files/{urllib.parse.quote(key)}?download=1"
 
     rec_id = data.get("id")
-    rec_ver = (data.get("metadata", {}) or {}).get("version", "unknown")
+    md = (data.get("metadata", {}) or {})
+    rec_ver_raw = md.get("version")  # may be None/empty if uploader didn't set it
+    published = md.get("publication_date") or "unknown-date"
+
+    # improved version string with stable fallback
+    if rec_ver_raw and str(rec_ver_raw).strip():
+        rec_ver = str(rec_ver_raw).strip()
+    else:
+        rec_ver = f"{published} (record {rec_id})"
+
     size_bytes = int(chosen.get("size") or 0)
 
     return download_url, algo.lower(), hexdigest, rec_id, rec_ver, size_bytes
@@ -216,7 +234,21 @@ def download_pfam(fullhmmer_dir):
     delete_file(gz_path)
 
 
+def _any_db_files_present(cluster_dir):
+    """Only consider the known data files to decide if we prompt for overwrite."""
+    for fname in CLUSTERBLAST_DATA_FILES:
+        if path.exists(path.join(cluster_dir, fname)):
+            return True
+    return False
+
+
 def download_clusterblast(cluster_dir, overwrite="ask"):
+    # Tell users clearly what we're doing
+    print(
+        f"ClusterBlast: using the LATEST upload from the Zenodo concept DOI "
+        f"10.5281/zenodo.{CLUSTERBLAST_CONCEPT_RECID} by default."
+    )
+
     url, algo, hexdigest, rec_id, rec_ver, _ = zenodo_latest_file_info(
         CLUSTERBLAST_CONCEPT_RECID, target_filename=CLUSTERBLAST_FILENAME
     )
@@ -225,9 +257,13 @@ def download_clusterblast(cluster_dir, overwrite="ask"):
     tarball = path.join(cluster_dir, CLUSTERBLAST_FILENAME)
     download_with_verify(url, tarball, algo=algo, expected_hex=hexdigest)
 
-    # confirm overwrite
-    if overwrite == "ask" and any(path.isfile(path.join(cluster_dir, f)) for f in os.listdir(cluster_dir)):
-        reply = input(f"ClusterBlast files already exist in {cluster_dir}. Overwrite? [y/N]: ").strip().lower()
+    # confirm overwrite only if the known DB artifacts already exist
+    if overwrite == "ask" and _any_db_files_present(cluster_dir):
+        reply = input(
+            f"ClusterBlast database files already exist in {cluster_dir} "
+            f"({', '.join([f for f in CLUSTERBLAST_DATA_FILES if path.exists(path.join(cluster_dir, f))])}). "
+            f"Overwrite with the new database? [y/N]: "
+        ).strip().lower()
         if reply not in ("y", "yes"):
             print("Keeping existing ClusterBlast database. Skipping extraction.")
             return
@@ -236,7 +272,13 @@ def download_clusterblast(cluster_dir, overwrite="ask"):
         return
 
     with tarfile.open(tarball, "r:gz") as tar:
-        tar.extractall(path=cluster_dir)
+        def safe_members(members):
+            for m in members:
+                # skip macOS metadata and system files
+                if m.name.startswith("._") or m.name.startswith("__MACOSX"):
+                    continue
+                yield m
+        tar.extractall(path=cluster_dir, members=safe_members(tar))
 
     print(f"Extraction of {path.basename(tarball)} finished successfully.")
     delete_file(tarball)

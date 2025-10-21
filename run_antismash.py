@@ -198,7 +198,7 @@ def main():
                        dest='clusterblastdir',
                        type=str,
                        default="",
-                       help="the clusterblastdir contain the database of antiSMASH-predicted clusters (plantgeneclusters.txt, plantgeneclusterprots.fasta).")
+                       help="the clusterblastdir contain the database of plantiSMASH-predicted clusters (plantgeneclusters.txt, plantgeneclusterprots.fasta).")
     group.add_argument('--subclusterblast',
                        dest='subclusterblast',
                        action='store_true',
@@ -1069,7 +1069,7 @@ def main():
         end_time = datetime.now()
         running_time = end_time - start_time
         logging.debug(
-            "antiSMASH calculation finished at {0}; runtime: {1}".format(
+            "plantiSMASH calculation finished at {0}; runtime: {1}".format(
                 str(end_time), str(running_time)
             )
         )
