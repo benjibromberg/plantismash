@@ -34,8 +34,7 @@ python tf_family_by_product.py tfbs_hits_all_bgcs.csv Ath_TF_binding_motifs_info
   --include-unvalidated
 
 # only strong evidence (validated strong), and also save PDFs:
-python tf_family_by_product.py tfbs_hits_all_bgcs.csv Ath_TF_binding_motifs_information.txt \
-  --strong-only --pdf
+python tf_family_by_product.py ../tfbs_hits_all_bgcs.csv Ath_TF_binding_motifs_information.txt --strong-only --pdf
 
 """
 
@@ -186,7 +185,7 @@ def stacked_bars(pivot: pd.DataFrame, top_families: int, title: str,
         bottoms = bottoms + vals
 
     ax.set_xticks(x)
-    ax.set_xticklabels(labels, rotation=60, ha="right", fontsize=8)
+    ax.set_xticklabels(labels, rotation=60, ha="right", fontsize=12)
     ax.set_ylabel("Count (unique TF×CDS pairs)")
     ax.set_title(title)
     ax.legend(ncol=3, frameon=False, fontsize=8)
@@ -211,17 +210,22 @@ def heatmap_rowprops(pivot: pd.DataFrame, title: str,
     fig, ax = plt.subplots(figsize=(fig_w, fig_h), constrained_layout=True)
 
     im = ax.imshow(props.values, aspect="auto")
+
+    # --- bigger axis labels ---
     ax.set_yticks(np.arange(props.shape[0]))
-    ax.set_yticklabels([str(p) for p in props.index], fontsize=8)
+    ax.set_yticklabels([str(p) for p in props.index], fontsize=13)   # was 8
     ax.set_xticks(np.arange(props.shape[1]))
-    ax.set_xticklabels([str(c) for c in props.columns], rotation=90, ha="center", fontsize=8)
+    ax.set_xticklabels([str(c) for c in props.columns], rotation=90, ha="center", fontsize=12)  # was 8
 
-    ax.set_title(title)
-    ax.set_xlabel("TF family")
-    ax.set_ylabel("Cluster product type")
+    # --- bigger axis titles ---
+    ax.set_title(title, fontsize=16)
+    ax.set_xlabel("TF family", fontsize=14)
+    ax.set_ylabel("Cluster product type", fontsize=14)
 
+    # --- colorbar with bigger tick labels ---
     cbar = fig.colorbar(im, ax=ax)
-    cbar.set_label("Proportion of family within product")
+    cbar.set_label("Proportion of family within product", fontsize=14)
+    cbar.ax.tick_params(labelsize=12)
 
     fig.savefig(out_png, dpi=200)
     if out_pdf:
