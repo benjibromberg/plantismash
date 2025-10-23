@@ -1,4 +1,4 @@
-plantiSMASH - Plant Specialized Metabolite Analysis Shell
+# plantiSMASH - Plant Specialized Metabolite Analysis Shell
 
 ===================================================================
 
