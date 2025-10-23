@@ -1,7 +1,5 @@
 # plantiSMASH - Plant Specialized Metabolite Analysis Shell
 
-===================================================================
-
 [![DOI](https://zenodo.org/badge/185329393.svg)](https://doi.org/10.5281/zenodo.15412176) 
 [![bio.tools](https://img.shields.io/static/v1?label=bio.tools&message=plantiSMASH&color=green)](https://bio.tools/plantismash)
 [![PyPI - Version](https://img.shields.io/pypi/v/plantismash?label=PyPI&logo=pypi&logoColor=white&include_prereleases)](https://pypi.org/project/plantismash/)
