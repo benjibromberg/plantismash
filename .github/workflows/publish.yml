@@ -19,7 +19,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Derive tag/prerelease flags in a single place
+      # Derive tag/prerelease flags once
       - name: Compute release metadata
         id: meta
         run: |
@@ -27,7 +27,6 @@ jobs:
             echo "tag=${{ github.event.release.tag_name }}" >> "$GITHUB_OUTPUT"
             echo "prerelease=${{ github.event.release.prerelease }}" >> "$GITHUB_OUTPUT"
           else
-            # Manual runs: fall back to the ref name (or let user pass an input)
             echo "tag=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
             echo "prerelease=false" >> "$GITHUB_OUTPUT"
           fi
@@ -49,17 +48,27 @@ jobs:
       - name: Check artifacts
         run: python -m twine check dist/*
 
-      - name: Upload artifacts to the GitHub Release
+      # Optional: keep artifacts in the run summary
+      - name: Upload build artifacts to Actions
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: |
+            dist/*.whl
+            dist/*.tar.gz
+
+      # Attach artifacts to the existing GitHub Release using a PAT
+      - name: Upload artifacts to the GitHub Release (by release_id, PAT)
         if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}                  # explicit token
-          tag_name: ${{ steps.meta.outputs.tag }}             # raw tag, not refs/tags/...
+          token: ${{ secrets.RELEASE_TOKEN }}          # <-- fine-grained PAT with Contents: Read & write
+          release_id: ${{ github.event.release.id }}   # use numeric release id to avoid ref/tag quirks
           files: |
             dist/*.whl
             dist/*.tar.gz
           fail_on_unmatched_files: true
-          # allowUpdates: true   # uncomment if you want to overwrite on re-runs
+          overwrite: true
 
       # ===== Trusted Publishing to (Test)PyPI =====
       - name: Publish to TestPyPI (prerelease)
