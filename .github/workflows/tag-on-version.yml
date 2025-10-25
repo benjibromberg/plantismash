@@ -10,10 +10,8 @@ jobs:
   tag-from-version:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # we need tags
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
 
       - name: Extract version from antismash/__init__.py
         id: getver
@@ -21,30 +19,33 @@ jobs:
         run: |
           set -euo pipefail
           VERSION=$(sed -nE "s/^__version__\s*=\s*['\"]([^'\"]+)['\"]/\\1/p" antismash/__init__.py)
-          if [ -z "${VERSION:-}" ]; then
-            echo "Could not find __version__ in antismash/__init__.py" >&2
-            exit 1
-          fi
+          [ -n "${VERSION:-}" ] || { echo "No __version__ found"; exit 1; }
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
 
       - name: Verify release/* branch suffix matches version (if applicable)
         if: startsWith(github.ref_name, 'release/')
-        shell: bash
         run: |
           set -euo pipefail
           EXPECTED="${GITHUB_REF_NAME#release/}"
-          if [ "${EXPECTED}" != "${{ steps.getver.outputs.version }}" ]; then
-            echo "Version mismatch: branch expects ${EXPECTED}, file has ${{ steps.getver.outputs.version }}" >&2
+          test "${EXPECTED}" = "${{ steps.getver.outputs.version }}" || {
+            echo "Version mismatch: branch expects ${EXPECTED}, file has ${{ steps.getver.outputs.version }}"
             exit 1
-          fi
+          }
 
-      - name: Create tag if missing
+      - name: Create tag or fail if stale
         shell: bash
         run: |
           set -euo pipefail
           TAG="plantismash-${{ steps.getver.outputs.version }}"
+          HEAD_SHA=$(git rev-parse HEAD)
           if git rev-parse -q --verify "refs/tags/${TAG}" >/dev/null; then
-            echo "Tag ${TAG} already exists; nothing to do."
+            TAG_SHA=$(git rev-list -n1 "${TAG}")
+            if [ "${TAG_SHA}" != "${HEAD_SHA}" ]; then
+              echo "Tag ${TAG} already exists but points to ${TAG_SHA}, not HEAD ${HEAD_SHA}."
+              echo "Bump __version__ (e.g. 2.0.3.1) or delete/retag manually."
+              exit 1
+            fi
+            echo "Tag ${TAG} already exists and points to HEAD; nothing to do."
             exit 0
           fi
           git config user.name "${GITHUB_ACTOR}"

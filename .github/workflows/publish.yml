@@ -14,13 +14,53 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout tagged release (or current ref on manual run)
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          # On a release event, build exactly the tag. On manual runs, use the current ref.
+          ref: ${{ github.event.release.tag_name || github.ref }}
 
-      - uses: actions/setup-python@v5
+      - name: Show commit being built
+        run: |
+          echo "TAG:  ${{ github.event.release.tag_name }}"
+          git log -1 --decorate --oneline
+
+      - name: Verify tag matches __version__
+        if: github.event_name == 'release'
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Try _version.py first; fall back to __init__.py
+          VER=$(sed -nE "s/^__version__\\s*=\\s*['\"]([^'\"]+)['\"]/\\1/p" antismash/_version.py || true)
+          if [ -z "$VER" ]; then
+            VER=$(sed -nE "s/^__version__\\s*=\\s*['\"]([^'\"]+)['\"]/\\1/p" antismash/__init__.py || true)
+          fi
+          if [ -z "$VER" ]; then
+            echo "ERROR: Could not find __version__ in antismash/_version.py or antismash/__init__.py" >&2
+            exit 1
+          fi
+          TAG="${{ github.event.release.tag_name }}"
+          # Accept tags like 'plantismash-2.0.3' or 'v2.0.3'
+          EXPECT="${TAG#plantismash-}"; EXPECT="${EXPECT#v}"
+          if [ "$VER" != "$EXPECT" ]; then
+            echo "ERROR: Tag '$TAG' says version '$EXPECT' but __version__ is '$VER'." >&2
+            exit 1
+          fi
+          echo "Version check OK: $VER"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
       - name: Install build tooling
         run: |
@@ -50,6 +90,7 @@ jobs:
           user: __token__
           password: ${{ secrets.TEST_PYPI_API_TOKEN }}
           skip-existing: true
+          verbose: true
 
       # ---------- Publish to PyPI for normal releases (Trusted Publishing via OIDC) ----------
       - name: Publish to PyPI (normal release)
@@ -57,3 +98,4 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           skip-existing: true
+          verbose: true
