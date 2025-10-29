@@ -1,6 +1,6 @@
 # plantiSMASH - Plant Specialized Metabolite Analysis Shell
 
-[![DOI](https://zenodo.org/badge/185329393.svg)](https://doi.org/10.5281/zenodo.15412176) 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15412176.svg)](https://doi.org/10.5281/zenodo.15412176)
 [![bio.tools](https://img.shields.io/static/v1?label=bio.tools&message=plantiSMASH&color=green)](https://bio.tools/plantismash)
 [![PyPI - Version](https://img.shields.io/pypi/v/plantismash?label=PyPI&logo=pypi&logoColor=white&include_prereleases)](https://pypi.org/project/plantismash/)
 [![GitHub Release](https://img.shields.io/github/v/release/plantismash/plantismash?include_prereleases&sort=semver&display_name=tag&logo=github)](https://github.com/plantismash/plantismash/releases)
@@ -20,14 +20,17 @@
 
 ## 📄 Publications & Citation
 
-If you use plantiSMASH in your work, please cite the relevant antiSMASH and plantiSMASH publications:
+If you use plantiSMASH in your work, please cite the relevant publications:
 
-- How to cite the antiSMASH suite of tools: [antiSMASH citations page](http://antismash.secondarymetabolites.org/#!/about)
-- PlantiSMASH publications:  
-  
+**plantiSMASH 2.0: improvements to detection, annotation, and prioritization of plant biosynthetic gene clusters**
+Elena Del Pup, Charlotte Owen, Ziqiang Luo, Hannah E. Augustijn, Arjan Draisma, Guy Polturak, Satria A. Kautsar, Anne Osbourn, Justin J.J. van der Hooft, Marnix H. Medema
+bioRxiv 2025.10.28.683968; doi: [https://doi.org/10.1101/2025.10.28.683968](https://doi.org/10.1101/2025.10.28.683968)
+
 **plantiSMASH: automated identification, annotation and expression analysis of plant biosynthetic gene clusters.**  
 Satria A. Kautsar, Hernando G Suarez Duran, Kai Blin, Anne Osbourn & Marnix H. Medema
 Nucleic Acids Research, 45(W1), W55-W63. (2017) [https://doi.org/10.1093/nar/gkx305](https://doi.org/10.1093/nar/gkx305)
+
+To cite the antiSMASH suite of tools: [antiSMASH citations page](http://antismash.secondarymetabolites.org/#!/about)
 
 ---
 
