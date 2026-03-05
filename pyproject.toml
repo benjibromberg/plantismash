@@ -68,7 +68,7 @@ include = ["antismash*"]
 antismash = [
   "**/*.html", "**/*.tpl", "**/*.css", "**/*.js", "**/*.json",
   "**/*.txt",  "**/*.hmm", "**/*.pfam", "**/*.png", "**/*.svg",
-  "**/*.cfg"
+  "**/*.cfg",  "**/*.fasta", "**/*.dmnd"
 ]
 
 [tool.setuptools.dynamic]
