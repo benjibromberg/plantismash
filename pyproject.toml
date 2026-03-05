@@ -64,12 +64,10 @@ where = ["."]
 include = ["antismash*"]
 
 [tool.setuptools.package-data]
-# Ship all the assets plantiSMASH needs at runtime.
-antismash = [
-  "**/*.html", "**/*.tpl", "**/*.css", "**/*.js", "**/*.json",
-  "**/*.txt",  "**/*.hmm", "**/*.pfam", "**/*.png", "**/*.svg",
-  "**/*.cfg",  "**/*.fasta", "**/*.dmnd"
-]
+# Ship ALL non-Python assets plantiSMASH needs at runtime.
+# plantiSMASH bundles reference databases, alignments, HMMs, and other data
+# files alongside the code — a selective allowlist is fragile, so include everything.
+antismash = ["**/*"]
 
 [tool.setuptools.dynamic]
 version = { attr = "antismash.__version__" }
