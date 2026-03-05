@@ -12,8 +12,9 @@ COPY graphlan /tmp/graphlan
 RUN mamba env update -n base -f /tmp/environment.yml && \
     mamba clean -a -y
 
-# Explicitly reinstall plantiSMASH to ensure correct versioning
-RUN pip install plantismash==2.0.4
+# Install plantiSMASH from local source (includes package-data fixes)
+COPY . /tmp/plantismash
+RUN pip install /tmp/plantismash && rm -rf /tmp/plantismash
 
 # Fix for potential "hmmpfam2 not found" errors
 RUN if [ ! -f /opt/conda/bin/hmmpfam2 ]; then ln -s /opt/conda/bin/hmmpfam /opt/conda/bin/hmmpfam2; fi
