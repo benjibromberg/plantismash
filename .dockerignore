@@ -1,0 +1,9 @@
+.git
+.github
+*.pyc
+__pycache__
+cover/
+.coverage
+documents_internal/
+db_testing/
+CLAUDE.md

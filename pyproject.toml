@@ -64,10 +64,25 @@ where = ["."]
 include = ["antismash*"]
 
 [tool.setuptools.package-data]
-# Ship ALL non-Python assets plantiSMASH needs at runtime.
-# plantiSMASH bundles reference databases, alignments, HMMs, and other data
-# files alongside the code — a selective allowlist is fragile, so include everything.
-antismash = ["**/*"]
+# Ship all runtime assets plantiSMASH needs.
+# Excludes platform binaries (*.dll, *.so, *.dylib, *.jar) to keep the wheel small.
+antismash = [
+  "**/*.html", "**/*.tpl", "**/*.css", "**/*.js", "**/*.json",
+  "**/*.txt", "**/*.tsv", "**/*.cfg", "**/*.xml", "**/*.dtd",
+  "**/*.hmm", "**/*.hmm2", "**/*.hmm3", "**/*.pfam",
+  "**/*.h3f", "**/*.h3i", "**/*.h3m", "**/*.h3p",
+  "**/*.fasta", "**/*.fa", "**/*.afa", "**/*.pep", "**/*.dmnd",
+  "**/*.phr", "**/*.pin", "**/*.psq",
+  "**/*.png", "**/*.svg", "**/*.gif", "**/*.jpg",
+  "**/*.p", "**/*.model", "**/*.markov", "**/*.mar",
+  "**/*.dt", "**/*.don", "**/*.acc", "**/*.distr",
+  "**/*.atg", "**/*.stop", "**/*.hexfreq", "**/*.dat",
+  "**/*.embl", "**/*.gbk", "**/*.xls",
+  "**/CONTENTS.pkl",
+  "**/*.CSLs_all_to_check_with_add", "**/*.UGTs_all_to_check",
+  "**/subgroup/**/*.refpkg/*",
+  "**/genefinding/train_*/*"
+]
 
 [tool.setuptools.dynamic]
 version = { attr = "antismash.__version__" }
